@@ -1,0 +1,3 @@
+- Mermaid flow diagrams for MVP
+- Telemetry
+- Generate and refine all screens
