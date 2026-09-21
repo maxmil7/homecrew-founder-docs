@@ -1,6 +1,145 @@
 # Home Circle — Founding Partner Brief
 
-*Last updated: May 7, 2026*
+*Last updated: Sept 1 2026*
+
+---
+
+# ⭐ START HERE — state as of Sept 1 2026
+
+## Where the project actually is
+
+**Auth is done. Roughly 15–20% of v1 is built. Design is well ahead of code.**
+
+| Layer | Built | Missing |
+|---|---|---|
+| API | `auth.ts` (JWT, OTP, rate limit, allowlist, Sentry), `twilio.ts` | saves, reviews, ledger, search, profile, match hardening |
+| DB | `users`, `pros`, `vouches` | `saves` migration, ledger, blocks, reports |
+| Mobile | Welcome, PhoneEntry, OTP, QuickSetup + 17 components | everything after onboarding |
+| Figma | `Components / V1` (`1055:2`) substantially complete | screens still iterating |
+
+Implementation from here is mostly transcription and wiring, not design — that is why a 7-week estimate is credible.
+
+## The live doc set
+
+Everything else in `docs/` is reference or archive. These five are maintained:
+
+| Doc | Role |
+|---|---|
+| **`v1-build-plan.md`** | **The active plan.** Sept 1 → submission Oct 23 2026 |
+| `v1-spec.md` | Product scope, surfaces, visibility rules, empty states |
+| `decision-log.md` | Every decision + rationale, append-only |
+| `design-system.md` | Figma reference, components, tokens |
+| `arch.md` | System design, saves schema, client write model |
+
+Archived Sept 1 to `docs/archive/`: `v1-drift-fix-spec.md`, `v1-migration-map.md`, `v1-legacy-salvage-map.md`, `v1-alignment-reconciliation.md`, `sketch-inventory-map.md`, `screens.md`. Superseded: `v1-day-by-day-plan.md`, the V1 Sprint Plan in `sprint-tracker.md`.
+
+## Two open blockers
+
+1. **Save visibility — list-level vs per-save.** `v1-spec.md` (May 25) specifies per-save with three levels and the Figma `ProCard` has a per-pro control; the Aug schema work and the current copy are list-level with two. **This blocks the Phase 0 D1 migration.** See `v1-spec.md` §Save + Review Visibility Rules.
+2. **CSAM hash-matching + NCMEC reporting.** Rekognition classifies nudity/violence but does not hash-match known CSAM or discharge 18 U.S.C. 2258A. Recommendation in `v1-build-plan.md` §7. Blocks Phase 3 close.
+
+*(Image moderation itself is **not** open — Rekognition + Supabase Storage was decided May 12 2026.)*
+
+## What happened Sept 1 2026
+
+- Built the error primitives in Figma: `Toast tone`, `EmptyState tone=offline`, `Button state=loading`, `Button / disabled`, `Spinner`, `EmptyIcon / offline`
+- Settled the full write model — queue scope, loading semantics, the three exits, timeouts
+- Fixed a live bug: the Saved empty state was rendering "＋ Find a contractor"
+- Rescaled all seven opacity tokens to percentage units (`-pct`)
+- Re-based the plan from a calendar that expired Jun 30, archived six docs, corrected the brief's stack line (it claimed FastAPI + Clerk + Cloudflare R2 — none of which are used)
+
+---
+
+## What happened this session (May 16, 2026)
+
+### Day 6 design queue — fully shipped
+
+Heavy session. All five Day 6 Figma atoms built and placed in `Atoms / V1` on the `Components / V1` page, every fill bound to tokens from the `Tokens / V1` collection (54 color variables discovered + adopted). Atom inventory at end of session:
+
+| Atom | Node | Variants | Tokens bound |
+|---|---|---|---|
+| Toast | `1198:47` | 4 (Success/Error/Info/Compact) | 10 |
+| Input | `1211:17` | 5 state (Default/Focused/Error/Disabled/Filled) | 11 |
+| FormField | `1215:68` | 10 (5 states × 2 required) | 12 |
+| ProCard | `1227:90` | 3 tier (1stCircle/MutualFriend/Neighbor) | 11 |
+| LocationInput | `1232:16` | 2 state (Idle/Loading) | 8 |
+
+### Token system discovery + retrofit
+
+`get_variable_defs` on the original Toast gallery returned `{}` — sleek.design's generated mockups used raw Slate/Plus-Jakarta hex everywhere. Audited the file's `Tokens / V1` collection (54 color tokens, `colors/primitives/*` raw + `colors/semantic/*` aliased). Toast atom was retrofitted token-by-token after Milind caught a raw-hex icon I'd missed. Subtle Figma API gotcha learned: `figma.variables.setBoundVariableForPaint()` resets paint `opacity` to 1 — must re-apply opacity after binding for fills like `border-subtle @ 6%` or the Undo button `white @ 12%`.
+
+### Destructive red token alignment
+
+Pre-session, two reds coexisted in the file: token `red-500 = #D14B47` (aliased by `action-destructive`) and raw `#C25E5E` (used by Vouch Delete Confirm Sheet `842:2` and Delete Account Confirm Sheet `785:12`, plus my initial Toast Error work). Milind chose to align everything to the token. Toast Error icon flipped from `#C25E5E` to `action-destructive` (slightly brighter, more saturated red); Input/FormField error states already bound correctly via Milind's draft work; destructive sheets retrofitted in a clean sweep (6 fills bound across the 2 sheets). Visual delta is minor but the system is now unified.
+
+### Quick Setup screen — polished, composed from atoms, promoted to canonical
+
+Milind drafted Quick Setup at `1168:2` inside the `Day 6 — For Review` working canvas. Polish pass found tokens 100% already bound (cleanest draft of the session). Only drifts: Name→Zip spacing 23→24 (`space-2xl`) and back chevron stroke from `forest-700` primitive to `text-brand` semantic.
+
+Then refactored to compose entirely from atoms: Name field uses FormField `state=Focused, required=true`, Zip field uses FormField `state=Filled, required=true` (new variant created today). Required adding a `Filled` state to Input atom (5th variant — default border styling + filled text styling) and a `state=Filled` to FormField (10 variants total). Accepted layout shift: Name field grows from 89h → 121h (consistent reserved helper-text slot across all FormField variants).
+
+Hero copy rewritten: `"What should we call you?"` → `"Tell us about you"`, subtitle to `"We use your name on vouches and your zip to find pros near you."` This removed the four-affordance redundancy on the Name field (hero + subtitle + label + placeholder all said "type your name"). With screen-level framing, both field labels earn their place.
+
+Quick Setup then moved out of `Day 6 — For Review` and into `Canonical Screens / V1` at `(1701, 92)` — 4th canonical screen alongside Welcome / Phone Entry / OTP Entry. Reads left-to-right as the onboarding flow.
+
+### Quick Setup architecture decisions locked
+
+**Routing branch:** new users see Quick Setup; returning users skip entirely. After OTP verify, backend returns `{ jwt, userId, profileComplete: bool, missingFields?: [], ipZip?, ipCity? }`. Client routes by `profileComplete`. Phone-switch case (user reinstalls, signs in fresh) is the load-bearing reason — forcing returning users to re-enter name + zip is broken UX.
+
+**IP-prefill via Cloudflare:** Quick Setup zip pre-fills from `request.cf.postalCode` returned in the OTP verify response. Helper text `"Looks like {city} — we'll show pros near you"` confirms IP-derived city. Covers 80%+ of users before they even see the screen. User can correct via typing OR via LocationInput's GPS icon (Day 8 wiring).
+
+**Welcome-back morph** noted as a future polish: returning-user OTP success state could read `"Welcome back, [Name]"` with stored name retrieved via the same `/auth/otp/verify` response. ~15min Figma work; not blocking v1.
+
+### LocationInput molecular + permission-on-intent canonical pattern
+
+Built `LocationInput` (`1232:16`) as a separate molecular wrapping an Input atom instance + a GPS icon button on the right edge. Two state variants: `Idle` (icon at `text-quaternary`, awaiting tap) and `Loading` (icon at `action-primary`, geolocation in flight). Icons sourced from existing canonical icons in the file — `1069:3` pin-icon from LocationBadge for Idle, `1:437` location vector from Search header for Loading (per Milind's direction after my first attempt at custom-drawn ellipses didn't match the system).
+
+**Permission-on-intent pattern locked as canonical** for both Contacts (already locked) AND Location. No native OS prompt fires on screen mount; prompt only fires when user explicitly taps the GPS icon. Same pattern that powers the Privacy Firewall / Soft Auth architecture. Cognitive friction disappears because the user initiated the ask.
+
+Day 8 plan updated to add a shared `useGeolocation()` hook as the single primitive consumed by both LocationBadge GPS button AND LocationInput GPS icon — one source of truth for the permission/loading/reverse-geocode lifecycle. Avoids two parallel implementations.
+
+### Input atom — extended to 5 states, plus name unification
+
+Milind's draft `Input — error state variant` (`1166:2`) was already well-bound to tokens. Built the canonical Input atom with 4 states from his draft (Default, Focused, Error, Disabled), then added the 5th state (`Filled` = default border + filled-text styling) when Quick Setup needed a "field has value but isn't focused" rendering. Genericized default placeholder text on the atom from `"Phone number"` / `"(415) 555-2671"` to `"Placeholder"` / `"Sample input"` — the prior values read as prescriptive (designers might assume the atom was phone-specific).
+
+Also clarified the label/placeholder pattern question Milind raised: we use **two patterns by context** — placeholder-as-label for sheet-context single-field surfaces (Auth Sheet phone input, OTP sheet), and fixed-top labels via FormField for multi-field forms (Quick Setup, future Edit Profile). Floating Material labels explicitly rejected — iOS-first MVP doesn't get value worth the implementation complexity, and they break the required-asterisk affordance.
+
+### ProCard naming, structure, and adoption pass
+
+Milind questioned my initial name `ProProfileCard` — the card surfaces a pro but isn't the Pro Profile page (that's `1:705`/`798:2`). Discussed `ProVouchCard` (rejected — card is pro-led not vouch-led, breaks when there's no vouch attribution) vs. `ProCard` (cleanest, scales to any context). Locked on **ProCard**.
+
+Built the atom from the locked canonical pattern (`1:1430 → 1:1524` for 1stCircle, `1:1557` for MutualFriend, `1:1591` for Neighbor) rather than the alternate `ProProfileCard / simplest` 100h draft at `1168:27` — the rich 148h canonical is what every pro-discovery surface actually consumes; the 100h compact form has no home in v1.
+
+**Adoption pass executed end-of-session:** all 10 inline pro cards across the 4 Home screens (`1:1430`, `284:2`, `1:1209`, `21:219`) replaced with ProCard atom instances. Text overrides applied for pro name / location / pill / rating / attribution. Image hashes preserved per source (`b2aa7bdd...` for Flow State Plumbing logo, `649732a0...` for Roots Gardening, `67929ff8...` for Bright Arc Electrical, plus voucher avatar hashes). Future ProCard changes now propagate to all 4 Home screens automatically. Minor known regression: mixed-font bold range on overridden attribution text (the bolded "Willow Glen" on 4 Neighbor cards) was flattened by Figma's `characters =` setter — 5-min fix later via `setRangeFontName` if we want.
+
+### Other product threads landed
+
+- **Input success state** asked + rejected for v1. Symmetry-with-error isn't sufficient justification; revisit when we have a real use case (username availability check, async email verification, real-time field validation). Lock the Input atom on 4 states (Default/Focused/Error/Disabled) for v1 + the Filled state added for Quick Setup.
+- **Name field optional vs required** considered for Quick Setup. Went with required (option A). Revisit if conversion data shows abandonment at Quick Setup is meaningfully higher than baseline.
+- **Derive name from phone contact card?** Considered. Technically possible on iOS (Contacts framework `unifiedMeContact`, ~60% coverage) and Android (`ContactsContract.Profile`, ~50% coverage) but requires Contacts permission — which we explicitly defer until post-onboarding via the Privacy Firewall pattern. Permission timing argument trumps the auto-fill convenience. Plus per Apr 25 decision, the stored name is functionally invisible to non-contacts anyway. Name capture stays manual on Quick Setup.
+- **Day 6 — For Review canvas** (`1164:2`) now serves as an audit-reference archive — all the draft contents have either been atomized (Toast, Input, FormField, LocationInput) or promoted to canonical (Quick Setup). The `ProProfileCard / simplest` draft stays as an archived alternate form factor that we may revisit.
+
+### Day-by-day plan updates
+
+`docs/v1-day-by-day-plan.md` edited in three places:
+- Day 6 Error UI primitives bullet list now includes LocationInput as a Figma-only deliverable
+- Day 6 Quick Setup section now describes the FormField + LocationInput composition + IP-prefill mechanism + returning-user routing branch
+- Day 8 renamed from `Google Places integration + LocationBadge` to `Google Places integration + LocationBadge + LocationInput GPS wiring`. Added the shared `useGeolocation()` hook as a morning deliverable; wire-up of LocationInput in Quick Setup zip field lives in the evening section alongside LocationBadge. Also added the previously-denied-permission error matrix row (iOS only prompts once per install — need "Open Settings" toast fallback).
+
+### Doc state going forward
+
+- **founding-partner-brief.md** — this session entry
+- **decision-log.md** — 15 new decision rows appended for May 16
+- **sprint-tracker.md** — Day 6 status updated to "design complete; remaining is code+config"
+- **design-system.md** — **NOT updated.** Per the locked rule, that doc only gets updated when Milind explicitly says "this is final, write the canonical spec." The new atoms, the destructive-red token alignment, the LocationInput pattern, the Quick Setup architecture — all worthy of documentation, all queued for sign-off.
+
+### Where we are end of session
+
+Day 6 design queue is **fully complete**. Five atoms shipped + token-bound, one screen polished and promoted to canonical, 10 inline cards across 4 home screens adopted to the new ProCard atom, destructive sheets retrofitted to the unified red token, 4 canonical screens now in `Canonical Screens / V1` (Welcome → Phone Entry → OTP Entry → Quick Setup reading left-to-right as the onboarding flow). What's left on Day 6 is all code or config (Day 5 OTP retrofit, `analytics.captureFailure`, mid-OTP SecureStore resume, alert guardrails, Quick Setup signup wiring, ProCard code implementation, Definition-of-Done sweep).
+
+Open thread: **design-system.md update** when Milind says go. Plus minor polish: re-bold the "Willow Glen" range on the 4 Neighbor cards where override flattened mixed-font styling.
+
+
 
 ## What happened this session (May 7, 2026)
 
@@ -244,7 +383,7 @@ status on repeat visits and renders this state directly.
 
 ## Where we are
 
-We're in **Q2 2026 — Build phase**. Design work has extended ~3 weeks past the original Sprint 0 close. As of May 3, the design audit is complete and the remaining work is fully scoped: 24 items across Rahul's-feedback implements, 4 net-new screens, an overlay refactor, prototype wiring, and final docs. Engineering sprints (2+) shift accordingly when design wraps. Tech stack decisions established (React Native + Expo, FastAPI + Postgres + PostGIS, Clerk auth, Cloudflare R2).
+We're in **Q2 2026 — Build phase**. Design work has extended ~3 weeks past the original Sprint 0 close. As of May 3, the design audit is complete and the remaining work is fully scoped: 24 items across Rahul's-feedback implements, 4 net-new screens, an overlay refactor, prototype wiring, and final docs. Engineering sprints (2+) shift accordingly when design wraps. Tech stack (corrected Sept 1 2026 — the earlier FastAPI/Clerk/R2 line was never accurate): **React Native + Expo** (mobile), **Bun + Hono + Drizzle** (API), **Postgres + PostGIS** via Docker locally and Supabase in prod, **phone-only auth** (Twilio Verify + HS256 JWT, no Clerk), **Supabase Storage** for images (no Cloudflare R2).
 
 ## Current sprint
 
@@ -757,8 +896,8 @@ consistent vertical rhythm, HIG-compliant.
 
 ## Open questions
 
-1. Tech stack details — which auth provider, which infra, etc. (Mostly resolved per `docs/arch.md`; remaining: Twilio vs alternative for OTP, image-hosting decisions for Vouch photos.)
-2. When do we start the gift card campaign relative to app development?
+1. Tech stack details — which auth provider, which infra, etc. (Resolved per `docs/arch.md` + V1 decisions in `docs/decision-log.md`. OTP: Twilio Verify. Image hosting: Supabase Storage with AWS Rekognition async moderation, locked May 12.)
+2. ~~When do we start the gift card campaign relative to app development?~~ — **Resolved May 14, 2026.** Planning + materials Mon Jun 9 → Fri Jun 13 (Week 5 of build). Field execution: 4 Saturdays Jun 14, 21, 28, Jul 5 (overlapping Week 6 of build through pre-launch). Admin seeding pipeline shipped Day 22 morning supplemental (Jun 9). Tracked as tasks #89 / #90 / #91 + new "Gift Card Seed Campaign" section in `sprint-tracker.md`. Total budget ~$1,100, total time ~30h spread over 5 weeks.
 3. Do we need a landing page / waitlist before the app launches?
 4. Should bridge attribution ("a friend of Elena R.") get a per-user privacy toggle in v2, or is ToS-only consent acceptable long-term?
 

@@ -90,6 +90,28 @@ Launch publicly. Saturate your home neighborhood. Prove that the network effect 
 ### Key Insight
 Do not try to grow broadly. Go absurdly deep in one neighborhood. If you can get 50 households and 30 vouched pros in Willow Glen (or wherever you are), you have a working product. If you can't, you need to iterate before expanding.
 
+### Initial Launch Playbook (density-first)
+
+One consolidated reference for what "launch" actually requires. Everything targets **one neighborhood** — Willow Glen, or wherever the founder's own graph is densest. Breadth is the enemy; depth is the product.
+
+**Definition of done.** Floor (working product — see Milestone Metrics below): **50 households, 30 pros with ≥1 review, week-4 retention > 25%, ≥3 unaided hires** (someone found and hired a pro through the app with zero founder intervention). Campaign headline target: **100 organic reviews** in the neighborhood. ("Vouch" is the internal name; the UI says *review*.)
+
+**Pre-launch checklist** (detail in `IMPLEMENTATION.md`): App-Store-approved build · `safety@gethomecircle.com` monitored · ToS + Privacy live at stable URLs, ToS containing the no-objectionable-content clause the phone screens already point at · PostHog `_attempted/_succeeded/_failed` funnels firing · contact-sync exercised on a **physical device** (the activation hero — untestable in the simulator) · 5–10 TestFlight testers recruited *before* the build is ready · **you personally seed 5–10 reviews** for pros you've actually used, so the first real user never lands on an empty app.
+
+**The 100-review local campaign.** The point is reviews created *organically*, not by you — track organic-vs-seeded from day one; only the organic count moves us toward the gate.
+- *Channels:* door-to-door on the target streets · the neighborhood's Facebook / Nextdoor groups · a 5-minute slot at an HOA meeting · contractor outreach — visit local pros and get them to ask happy clients to add them.
+- *The ask is 60 seconds:* "Add one plumber or electrician you'd actually recommend." Anything longer dies on a doorstep.
+- *Team:* helper 1 runs neighborhood outreach · helper 2 sits with people through signup + first review + contact-sync · helper 3 works the contractor side (mirrors Team Deployment below).
+
+**Mom Test discovery — run it *during* launch, not after.** Ten real conversations a week, phone or in person, never a survey.
+- *Who:* homeowners who recently needed a pro · users who signed up but never reviewed · churned users · your power users.
+- *Rules (from The Mom Test):* ask about **past behavior and money already spent** ("how did you find your last plumber? what did it cost you in time and stress?") — never "would you use this?" Compliments and hypotheticals are noise.
+- *Signal that counts:* they searched for / paid for / asked a friend about a contractor in the last few months — and, the only retention signal that matters, they came back to the app unprompted.
+
+**Retention without notifications.** v1 ships **no push, no digests, no badges** (`V1.md` Principle 9). Retention must come from the product being genuinely useful at the moment of need, the **ledger** giving a reason to return, and the **invite-a-neighbor** word-of-mouth loop — not re-engagement pings. Any tactic that assumes push is out of scope for v1.
+
+**Go / no-go gate (end of seed window).** One question: *are people finding and hiring pros through the app without the founder's intervention?* **Yes →** systematize the playbook and repeat it in neighborhood 2 — never launch wide. **No →** fix the loop first; expanding a broken loop only multiplies the problem.
+
 ### Milestone Metrics
 - 100+ registered users in primary neighborhood by end of July
 - 50+ vouches created organically (not seeded by you) by end of August
