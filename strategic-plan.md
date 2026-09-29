@@ -1,4 +1,4 @@
-# Home Circle — Strategic Plan
+# HomeCrew — Strategic Plan
 
 ## Mission
 Help homeowners find trusted contractors through their personal network, and help honest contractors build recurring business through word-of-mouth.
@@ -165,11 +165,22 @@ Expand to 3–5 neighborhoods. Introduce monetization. Validate that the model w
 - First revenue (even $100/month matters — it proves willingness to pay)
 - Retention holding steady as you expand (not declining)
 
-### Monetization Options to Test
-- **Pro subscriptions ($20–50/month):** Claimed profile, badge, analytics on their vouches, priority in search
-- **Lead generation ($5–15/lead):** When a user taps "Call" or "Text" on a pro, that's a lead
-- **Featured placement ($50–100/month):** Pro appears higher in category results within their service area
-- Start with ONE model, not all three. Recommendation: pro subscriptions — simplest to implement, recurring revenue, aligned with pro interests.
+### Pricing principle — SETTLED Sept 27 2026
+
+**Charge only against value the app has already demonstrated, at no more than a tenth of it.** A pro who can see HomeCrew earned them $50 will pay $5; a homeowner who can see it saved them $50 will pay $5.
+
+1. **Proof before paywall.** Both sides are free until the app can put a *checkable* number in front of them — "HomeCrew sent you 6 calls this month," "your friends paid $140 less for this than your quote," "$3,200 of cost basis on file." The ask arrives attached to that number, never to a feature list. Checkable beats estimated.
+2. **The Logbook and Pay confirms are the monetization instrument.** Earnings and savings are only provable if the app knows a job happened and what it cost. A Pay confirm (Venmo deep link → "Paid Joe $120?") is the strong signal, and the same tap fills the homeowner's ledger. Payments are on the monetization critical path, not a side feature.
+
+**Never for sale, on either side:** ranking or placement; a "verified" or trust badge (license verification is a user-safety feature — free and universal); access to the friend graph.
+
+**What pros pay for:** the earned relationship — claimed profile, replying, a calendar, getting paid through the app, and for recurring trades HomeCrew as their accounts-receivable. The best pros are booked and don't need leads; every one of them hates chasing payment.
+
+**What homeowners pay for (Plus):** the private side only — the household's file: receipts and cost basis, warranty and maintenance reminders, "is this quote fair?", recurring-service roster with auto-pay and vacation hold, household sharing. Recommendations stay free forever. Extends to cars and care providers when non-home categories ship.
+
+**Pricing shape when the time comes:** one plan per side, priced boringly ($3–5/mo homeowner, low tens for pros), year priced to make tax time the buying moment. Sequence: Venmo deep link + confirm first, Stripe Connect when recurring relationships have density, never before.
+
+> Supersedes the earlier "Monetization Options to Test" (pro subscriptions with badge + search priority, per-lead pricing, featured placement). Each sold the thing the free side depends on.
 
 ### Weekly Sprints
 
@@ -341,3 +352,32 @@ Each week follows this structure:
 
 *Last updated: April 11, 2026*
 *Next review: End of Q2 2026*
+
+---
+
+## Working notes
+
+Folded in from the standalone `feedback.md` and `todo.md` when these docs left
+the product repo — two files of a handful of lines each are easier to keep
+current as sections of the plan they inform than as roots of their own.
+
+### Feedback
+
+1% improvement everyday
+
+|Name|Feedback|
+|-|-|
+|Cade|Store private phone number of contractors|
+|Rahul|MVP can include only contact sync, Seprate profile for contractos, Vercel, Supabase, Cloudflare pages, Progressive webapps, Claude context.md, claude.md, good docs for right result, Have a sprint plan, JIRA stories|
+|Mom, Marcus|Can we search for other pros not related to home|
+
+### Todo
+
+- Telemetry
+- Generate and refine all screens
+
+**UX**
+- Polishing logo
+- Revisiting all images to make them consistent
+- Consistent typography
+- Micro animations if applicable
